@@ -5,12 +5,50 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/mi_proyecto/tools/mypathdb.php');
 
+// fn_estado_citas
+function obtenerEstadoCitas(PDO $conn, string $rol, ?int $idUsuario = null): array
+{   // fn_estado_citas Paso 1: 
+    //aqui se recibe el rol y el id del usuario que esta iniciado sesion
+    $rolNormalizado = strtolower(trim($rol));
+    $params = [];
+
+    // fn_estado_citas Paso 2:                               aqui le "quita" el acento
+    // aqui se prepara el rol para que coincida con la BD (por ejemplo médico -> medico)
+    if ($rolNormalizado === 'medico' || $rolNormalizado === 'médico') {
+        $rolBd = 'medico';
+        $params[':idUsuario'] = $idUsuario;
+    } elseif ($rolNormalizado === 'paciente') {
+        $rolBd = 'paciente';
+        $params[':idUsuario'] = $idUsuario;
+    } else {
+        $rolBd = 'administrador';
+        $params[':idUsuario'] = null;
+    }
+
+    $params[':rol'] = $rolBd;
+    // fn_estado_citas Paso 3: llama la funcion 
+    $sql = "SELECT * FROM fn_estado_citas(:idUsuario, :rol)";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC); //aqui se recibe la informacion de la funcion
+ 
+    // fn_estado_citas Paso 4: lo regresa en un arreglo a la variable que lo uso
+    return [
+        'pendientes' => intval($row['pendientes'] ?? 0),
+        'atendidas' => intval($row['atendidas'] ?? 0),
+        'canceladas' => intval($row['canceladas'] ?? 0),
+    ];
+    // fn_estado_citas Paso 5: Se muestra en los echo (linea 626 ejemplo)
+}
+
 $page_title = "Inicio";
 
 $idUsuario     = $_SESSION['id'] ?? 0;
 $nombreUsuario = $_SESSION['usuario'] ?? 'Usuario';
 $rolUsuario    = strtolower(trim($_SESSION['rol'] ?? ''));
-
+// Declaracion de variables
 $totalUsuarios    = 0;
 $totalCategorias  = 0;
 $totalProductos   = 0;
@@ -59,23 +97,10 @@ if ($rolUsuario == 'administrador') {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $totalCitas = intval($row['total'] ?? 0);
 
-    // CITAS PENDIENTES
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND LOWER(estado) = 'pendiente'");
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalPendientes = intval($row['total'] ?? 0);
-
-    // CITAS ATENDIDAS
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND LOWER(estado) = 'atendida'");
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalAtendidas = intval($row['total'] ?? 0);
-
-    // CITAS CANCELADAS
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND LOWER(estado) = 'cancelada'");
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalCanceladas = intval($row['total'] ?? 0);
+    $estadoCitas = obtenerEstadoCitas($conn, 'administrador');
+    $totalPendientes = intval($estadoCitas['pendientes'] ?? 0);
+    $totalAtendidas = intval($estadoCitas['atendidas'] ?? 0);
+    $totalCanceladas = intval($estadoCitas['canceladas'] ?? 0);
 
     // REPORTES
     if ($existeReportes) {
@@ -141,23 +166,10 @@ if ($rolUsuario == 'medico' || $rolUsuario == 'médico') {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $totalCitas = intval($row['total'] ?? 0);
 
-    // CITAS PENDIENTES DEL MÉDICO
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND id_medico = :idUsuario AND LOWER(estado) = 'pendiente'");
-    $stmt->execute([':idUsuario' => $idUsuario]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalPendientes = intval($row['total'] ?? 0);
-
-    // CITAS ATENDIDAS DEL MÉDICO
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND id_medico = :idUsuario AND LOWER(estado) = 'atendida'");
-    $stmt->execute([':idUsuario' => $idUsuario]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalAtendidas = intval($row['total'] ?? 0);
-
-    // CITAS CANCELADAS DEL MÉDICO
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND id_medico = :idUsuario AND LOWER(estado) = 'cancelada'");
-    $stmt->execute([':idUsuario' => $idUsuario]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalCanceladas = intval($row['total'] ?? 0);
+    $estadoCitas = obtenerEstadoCitas($conn, $rolUsuario, $idUsuario);
+    $totalPendientes = intval($estadoCitas['pendientes'] ?? 0);
+    $totalAtendidas = intval($estadoCitas['atendidas'] ?? 0);
+    $totalCanceladas = intval($estadoCitas['canceladas'] ?? 0);
 
     // REPORTES DEL MÉDICO
     if ($existeReportes) {
@@ -221,23 +233,10 @@ if ($rolUsuario == 'paciente') {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $totalCitas = intval($row['total'] ?? 0);
 
-    // CITAS PENDIENTES DEL PACIENTE
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND id_paciente = :idUsuario AND LOWER(estado) = 'pendiente'");
-    $stmt->execute([':idUsuario' => $idUsuario]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalPendientes = intval($row['total'] ?? 0);
-
-    // CITAS ATENDIDAS DEL PACIENTE
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND id_paciente = :idUsuario AND LOWER(estado) = 'atendida'");
-    $stmt->execute([':idUsuario' => $idUsuario]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalAtendidas = intval($row['total'] ?? 0);
-
-    // CITAS CANCELADAS DEL PACIENTE
-    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM citas WHERE status = 1 AND id_paciente = :idUsuario AND LOWER(estado) = 'cancelada'");
-    $stmt->execute([':idUsuario' => $idUsuario]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalCanceladas = intval($row['total'] ?? 0);
+    $estadoCitas = obtenerEstadoCitas($conn, $rolUsuario, $idUsuario);
+    $totalPendientes = intval($estadoCitas['pendientes'] ?? 0);
+    $totalAtendidas = intval($estadoCitas['atendidas'] ?? 0);
+    $totalCanceladas = intval($estadoCitas['canceladas'] ?? 0);
 
     // REPORTES DEL PACIENTE
     if ($existeReportes) {
@@ -428,7 +427,7 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/mi_proyecto/tools/sidebar.php');
                             <div class="card-body">
                                 <div class="mb-3 p-3 rounded" style="background:#fff8e1;">
                                     <div class="d-flex justify-content-between">
-                                        <span>Pendientes</span>
+                                        <span>Pendientes</span> 
                                         <strong><?php echo $totalPendientes; ?></strong>
                                     </div>
                                 </div>
