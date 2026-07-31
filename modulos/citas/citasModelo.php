@@ -130,34 +130,37 @@ if ($option == "obtenerHorarios") {
     exit;
 
 }
+
+// sp_registrar_cita
+// sp_registrar_cita paso 0:
+// Se llena el formulario de citas y JavaScript envía los datos mediante AJAX.
+// PHP recibe la opción "incluir" para comenzar el registro.
 if ($option == "incluir") {
 
+    // sp_registrar_cita paso 1:
+    //se obtiene la informacion del usuario que esta en sesion y los datos enviados desde el formulario
     $rolSesion = strtolower(trim($_SESSION['rol'] ?? ''));
-
     $idSesion = intval($_SESSION['id'] ?? 0);
-
     $id_paciente = intval($_POST['id_paciente'] ?? 0);
-
     $id_especialidad = intval($_POST['id_especialidad'] ?? 0);
-
     $id_medico = intval($_POST['id_medico'] ?? 0);
-
     $id_servicio = intval($_POST['id_servicio'] ?? 0);
-
     $fecha_cita = trim($_POST['fecha_cita'] ?? '');
-
     $hora_cita = trim($_POST['hora_cita'] ?? '');
-
     $estado = trim($_POST['estado'] ?? 'Pendiente');
-
     $observaciones = trim($_POST['observaciones'] ?? '');
 
+    // sp_registrar_cita paso 2:
+    //Si el usuario es paciente, se utiliza automáticamente su propio id
     if ($rolSesion == "paciente") {
 
         $id_paciente = $idSesion;
 
     }
 
+    // sp_registrar_cita paso 3:
+    //Se valida que los campos requeridos estén completos
+    // linea 163 a la 205
     if (
         $id_paciente <= 0 ||
         $id_especialidad <= 0 ||
@@ -166,59 +169,45 @@ if ($option == "incluir") {
         $fecha_cita == "" ||
         $hora_cita == ""
     ) {
-
         echo json_encode([
             "error" => 3,
             "mensaje" => "Debe completar toda la información."
         ]);
-
         exit;
-
     }
-
     if (!fechaValida($fecha_cita)) {
 
         echo json_encode([
             "error" => 5,
             "mensaje" => "No es posible registrar citas en fechas pasadas."
         ]);
-
         exit;
-
     }
-
     $hora_cita = substr($hora_cita,0,5);
-
     if (!horarioValido($hora_cita)) {
-
         echo json_encode([
             "error" => 6,
             "mensaje" => "Las citas únicamente pueden agendarse entre las 06:00 y las 22:00 horas."
         ]);
-
         exit;
-
     }
-
     if (!medicoDisponible(
         $conn,
         $id_medico,
         $fecha_cita,
         $hora_cita
     )) {
-
         echo json_encode([
             "error" => 7,
             "mensaje" => "El médico ya tiene una cita programada para esa fecha y hora."
         ]);
-
         exit;
-
     }
-
     // Cambiado
     $observaciones = trim($observaciones);
 
+    // sp_registrar_cita paso 4:
+    // Se llama al procedimiento almacenado enviando los datos
     try {
         $stmt = $conn->prepare("CALL sp_registrar_cita(:p_id_paciente, :p_id_especialidad, :p_id_medico, :p_id_servicio, :p_fecha_cita, :p_hora_cita, :p_observaciones)");
         $stmt->execute([
@@ -229,9 +218,8 @@ if ($option == "incluir") {
             ":p_fecha_cita" => $fecha_cita,
             ":p_hora_cita" => $hora_cita,
             ":p_observaciones" => $observaciones
-        ]);
-
-        echo json_encode([
+        ]); // se ejecuta el procedimiento
+        echo json_encode([ // devuelve la respuesta de exito
             "exito" => 1,
             "mensaje" => "La cita fue registrada correctamente."
         ]);
