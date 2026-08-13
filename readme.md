@@ -22,17 +22,19 @@ Antes de ejecutar el proyecto se necesita tener instalado:
 
 ### 1. Crear la base de datos
 
-Crear una base de datos en PostgreSQL utilizando **pgAdmin 4**.
+Abrir **pgAdmin 4** y crear una nueva base de datos con el nombre:
 
-Posteriormente, ejecutar el archivo "database.sql".
+**nexuscare**
 
-Este archivo contiene la creación de las tablas, relaciones, función y procedimiento almacenado necesarios para el funcionamiento del sistema.
+Dentro de la carpeta `db` del repositorio se encuentra el archivo `database.sql`.
 
-También se puede abrir el archivo y copiar su contenido directamente en el **Query Tool de pgAdmin** para ejecutarlo.
+Una vez creada la base de datos, abrir el **Query Tool** de la base de datos `nexuscare` y ejecutar el archivo `database.sql`.
 
 ### 2. Insertar datos de prueba
 
-Una vez creada la estructura de la base de datos, ejecutar el archivo "datos.sql".
+Dentro de la carpeta `db` del repositorio se encuentra el archivo `datos.sql`.
+
+Una vez creada la estructura de la base de datos, ejecutar este archivo sobre la base de datos `nexuscare`.
 
 Este archivo contiene **datos de ejemplo** para poder probar el funcionamiento de la aplicación, como usuarios, roles, especialidades, servicios médicos y citas.
 
@@ -44,38 +46,47 @@ Para que PHP pueda conectarse a PostgreSQL es necesario habilitar las extensione
 
 Abrir el archivo "php.ini" desde XAMPP y verificar que las extensiones de PostgreSQL estén habilitadas:
 
-ini
+"ini"
 extension=pdo_pgsql
 extension=pgsql
 Si aparecen comentadas con " ; ", quitar el punto y coma.
 
 Después de realizar el cambio, reiniciar **Apache** desde el panel de XAMPP.
 
-### 4. Colocar el proyecto en XAMPP
+### 4. Colocar el proyecto web en XAMPP
 
-Copiar la carpeta del proyecto dentro de:
+Al descargar este repositorio, se obtiene la carpeta:
 
-"C:\xampp\htdocs\"
+`nexuscare-web`
 
-La carpeta debe quedar con el nombre:
+Dentro de ella existen dos carpetas principales:
 
-"C:\xampp\htdocs\nexuscare\"
+- `nexuscare`: contiene el proyecto web.
+- `db`: contiene los archivos SQL de la base de datos.
 
-No es necesario utilizar directamente la carpeta del repositorio descargado. Si la carpeta descargada tiene otro nombre, como "nexuscare-web" , puede renombrarse a "nexuscare".
+Para ejecutar el proyecto con XAMPP, **únicamente se debe copiar la carpeta `nexuscare` dentro de `C:\xampp\htdocs\`**.
+
+No se debe copiar la carpeta completa `nexuscare-web` dentro de `htdocs`.
+
+La estructura debe quedar de la siguiente manera:
+
+`C:\xampp\htdocs\nexuscare\`
+
+La carpeta `db` **no necesita colocarse dentro de `htdocs`**, ya que únicamente contiene los archivos SQL utilizados para crear y poblar la base de datos.
 
 ### 5. Configurar la conexión a PostgreSQL
 
 Verificar el archivo:
 
-"tools/mypathdb.php"
+`tools/mypathdb.php`
 
 y configurar los datos correspondientes a la instalación local de PostgreSQL:
 
-* Host
-* Puerto
-* Nombre de la base de datos
-* Usuario
-* Contraseña
+- Host
+- Puerto
+- Nombre de la base de datos: `nexuscare`
+- Usuario
+- Contraseña
 
 La aplicación utiliza **PDO con PostgreSQL** para realizar la conexión y ejecutar las consultas.
 
