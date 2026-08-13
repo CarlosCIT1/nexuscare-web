@@ -47,7 +47,9 @@ Para que PHP pueda conectarse a PostgreSQL es necesario habilitar las extensione
 Abrir el archivo "php.ini" desde XAMPP y verificar que las extensiones de PostgreSQL estén habilitadas:
 
 "ini"
+
 extension=pdo_pgsql
+
 extension=pgsql
 Si aparecen comentadas con " ; ", quitar el punto y coma.
 
