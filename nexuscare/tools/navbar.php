@@ -60,67 +60,9 @@ Contacto
 <ul class="navbar-nav ms-auto">
 
 <!-- BUSCADOR -->
-<li class="nav-item">
-
-<a class="nav-link" href="#" role="button">
-<i class="bi bi-search"></i>
-</a>
-
-</li>
 
 
 <!-- NOTIFICACIONES -->
-<li class="nav-item dropdown">
-
-<a class="nav-link" data-bs-toggle="dropdown" href="#">
-<i class="bi bi-bell-fill"></i>
-<span class="navbar-badge badge text-bg-warning">3</span>
-</a>
-
-<div class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
-
-<span class="dropdown-item dropdown-header">
-
-3 Notificaciones
-
-</span>
-
-<div class="dropdown-divider"></div>
-
-<a href="#" class="dropdown-item">
-
-<i class="bi bi-cart-fill me-2"></i>
-
-Nuevo pedido registrado
-
-<span class="float-end text-secondary fs-7">
-
-Hace 5 min
-
-</span>
-
-</a>
-
-<div class="dropdown-divider"></div>
-
-<a href="#" class="dropdown-item">
-
-<i class="bi bi-box-seam me-2"></i>
-
-Nuevo servicio agregado
-
-<span class="float-end text-secondary fs-7">
-
-Hace 1 hora
-
-</span>
-
-</a>
-
-</div>
-
-</li>
-
 
 <!-- FULLSCREEN -->
 <li class="nav-item">
